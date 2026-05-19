@@ -1,0 +1,572 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Pintura Abstracta Interactiva</title>
+    <style>
+        /* Estilos Base e Identidad Visual */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+        body {
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            color: #fff;
+            overflow-x: hidden;
+            background-color: #0b0914; /* Fondo oscuro base */
+            position: relative;
+        }
+
+        /* Lienzo de Fondo para la Pintura Abstracta y Destellos */
+        #abstract-canvas {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: -2;
+            pointer-events: none;
+        }
+
+        .overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(11, 9, 20, 0.45);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            z-index: -1;
+        }
+
+        header {
+            text-align: center;
+            padding: 50px 20px 30px;
+            z-index: 10;
+        }
+
+        header h1 {
+            font-size: 3.5rem;
+            text-transform: uppercase;
+            letter-spacing: 6px;
+            font-weight: 800;
+            background: linear-gradient(45deg, #ff7b00, #ff007b, #00f2ff, #7000ff);
+            background-size: 300% 300%;
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            animation: gradientText 8s ease infinite;
+            filter: drop-shadow(0px 4px 15px rgba(0,0,0,0.6));
+        }
+
+        @keyframes gradientText {
+            0% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
+            100% { background-position: 0% 50%; }
+        }
+
+        /* Layout Principal */
+        .main-container {
+            display: flex;
+            flex: 1;
+            width: 100%;
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 20px;
+            gap: 30px;
+            z-index: 1;
+        }
+
+        .intro-side {
+            flex: 1;
+            display: flex;
+            align-items: flex-start;
+            position: sticky;
+            top: 20px;
+        }
+
+        .intro-card {
+            background: rgba(255, 255, 255, 0.06);
+            padding: 40px 30px;
+            border-radius: 20px;
+            border: 1px solid rgba(255, 255, 255, 0.15);
+            backdrop-filter: blur(10px);
+            box-shadow: 0 20px 50px rgba(0, 0, 0, 0.4);
+            text-align: center;
+            width: 100%;
+        }
+
+        .intro-card h2 {
+            font-size: 2rem;
+            margin-bottom: 15px;
+            color: #f1f1f1;
+        }
+
+        .intro-card p {
+            color: #ccc;
+            line-height: 1.6;
+        }
+
+        /* Contenedor del Lado Derecho */
+        .sections-side {
+            flex: 1.5;
+            display: flex;
+            flex-direction: column;
+            gap: 25px;
+        }
+
+        /* Estilo de la Sección Botón (Acordeón) */
+        .art-section {
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 20px;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+            overflow: hidden;
+            transition: background 0.4s ease, transform 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275), border-color 0.4s;
+        }
+
+        .art-section:hover {
+            background: rgba(255, 255, 255, 0.09);
+            transform: translateY(-2px);
+            border-color: rgba(255, 255, 255, 0.2);
+        }
+
+        /* Botón que activa la sección */
+        .section-trigger {
+            width: 100%;
+            background: none;
+            border: none;
+            color: white;
+            text-align: left;
+            padding: 30px;
+            font-size: 1.8rem;
+            font-weight: bold;
+            cursor: pointer;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            outline: none;
+            text-shadow: 1px 2px 5px rgba(0,0,0,0.5);
+        }
+
+        /* Icono indicador (+ / -) */
+        .section-trigger::after {
+            content: '+';
+            font-size: 2.2rem;
+            font-weight: 300;
+            transition: transform 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+            color: rgba(255,255,255,0.6);
+        }
+
+        /* Cambios visuales cuando la sección está activa */
+        .art-section.active {
+            background: rgba(255, 255, 255, 0.12);
+            border-color: rgba(255, 255, 255, 0.3);
+            box-shadow: 0 15px 40px rgba(0,0,0,0.4);
+        }
+
+        .art-section.active .section-trigger::after {
+            transform: rotate(135deg); /* Se convierte elegantemente en una 'x' o gira */
+            color: #ff007b;
+        }
+
+        /* Contenedor del Contenido Oculto */
+        .section-content {
+            max-height: 0;
+            overflow: hidden;
+            transition: max-height 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+            padding: 0 30px;
+        }
+
+        .section-content p {
+            font-size: 1.1rem;
+            line-height: 1.7;
+            color: #e0e0e0;
+            margin-bottom: 25px;
+            border-top: 1px solid rgba(255,255,255,0.1);
+            padding-top: 20px;
+            text-align: justify;
+        }
+
+        /* Galería de Imágenes */
+        .image-gallery {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 20px;
+            margin-top: 15px;
+        }
+
+        .image-box {
+            position: relative;
+            overflow: hidden;
+            border-radius: 12px;
+            height: 180px;
+            box-shadow: 0 8px 25px rgba(0,0,0,0.5);
+            background: #151226; 
+            border: 1px solid rgba(255,255,255,0.05);
+        }
+
+        .image-box img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            transition: transform 0.6s cubic-bezier(0.165, 0.84, 0.44, 1), filter 0.6s ease;
+            filter: grayscale(20%) brightness(0.9);
+        }
+
+        .image-box:hover img {
+            transform: scale(1.1);
+            filter: grayscale(0%) brightness(1.1);
+        }
+
+        .image-caption {
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            width: 100%;
+            background: linear-gradient(transparent, rgba(0,0,0,0.85) 40%);
+            font-size: 0.8rem;
+            padding: 15px 10px 8px;
+            text-align: center;
+            font-weight: 500;
+            letter-spacing: 0.5px;
+            backdrop-filter: blur(2px);
+        }
+
+        /* Responsivo */
+        @media (max-width: 950px) {
+            .main-container {
+                flex-direction: column;
+            }
+            .intro-side {
+                position: relative;
+                top: 0;
+            }
+            .image-gallery {
+                grid-template-columns: 1fr;
+            }
+            .image-box {
+                height: 220px;
+            }
+        }
+    </style>
+</head>
+<body>
+
+    <!-- Lienzo de renderizado artístico y destellos -->
+    <canvas id="abstract-canvas"></canvas>
+    <div class="overlay"></div>
+
+    <header>
+        <h1>Pintura Abstracta</h1>
+    </header>
+
+    <div class="main-container">
+        
+        <!-- Lado Izquierdo (Introducción) -->
+        <div class="intro-side">
+            <div class="intro-card">
+                <h2>El Arte del Color y la Forma</h2>
+                <p>Haz clic en cualquiera de las secciones de la derecha para desplegar la información histórica detallada y descubrir las galerías de obras auténticas.</p>
+            </div>
+        </div>
+
+        <!-- Lado Derecho (Secciones Desplegables) -->
+        <div class="sections-side">
+
+            <!-- Sección 1: Historia -->
+            <div class="art-section">
+                <button class="section-trigger">Historia</button>
+                <div class="section-content">
+                    <p>El arte abstracto no nació de la noche a la mañana, sino como una evolución lógica tras el Impresionismo y el Cubismo a principios del siglo XX. Alrededor de 1910, pintores de distintas partes de Europa comenzaron a sentir que la pintura tradicional (que imitaba la realidad) estaba agotada. Con el estallido de la Primera Guerra Mundial y los drásticos cambios tecnológicos, los artistas buscaron un lenguaje universal e interior. Wassily Kandinsky es considerado el pionero al pintar su primera acuarela abstracta en 1910, argumentando que la música no necesita imitar sonidos de la naturaleza para emocionar, y que la pintura debía lograr lo mismo a través de líneas puras y colores vibrantes sin depender de objetos reales.</p>
+                    <div class="image-gallery">
+                        <div class="image-box">
+                            <img src="https://upload.wikimedia.org/wikipedia/commons/8/8a/Vassily_Kandinsky%2C_1911_-_Composition_V.jpg" alt="Kandinsky Composición V">
+                            <div class="image-caption">Kandinsky - Comp. V (1911)</div>
+                        </div>
+                        <div class="image-box">
+                            <img src="https://upload.wikimedia.org/wikipedia/commons/a/a4/Hilma_af_Klint%2C_The_Ten_Largest%2C_No._3._Youth%2C_1907.jpg" alt="Hilma af Klint">
+                            <div class="image-caption">Hilma af Klint (1907)</div>
+                        </div>
+                        <div class="image-box">
+                            <img src="https://upload.wikimedia.org/wikipedia/commons/e/e4/Composition_with_Large_Blue_Plane%2C_Red%2C_Black%2C_Yellow%2C_and_Gray_by_Piet_Mondrian_Dallas_Museum_of_Art.jpg" alt="Mondrian">
+                            <div class="image-caption">Mondrian - Neoplasticismo</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Sección 2: Tipos de Pintura -->
+            <div class="art-section">
+                <button class="section-trigger">Tipos de Pintura</button>
+                <div class="section-content">
+                    <p>La abstracción se divide principalmente en dos grandes vertientes con filosofías opuestas. Por un lado, la <strong>Abstracción Lírica u Orgánica</strong> (asociada al Expresionismo Abstracto), donde predomina la total libertad, la improvisación, el gesto intuitivo y el uso de manchas o chorreos de pintura (Action Painting) para plasmar estados psicológicos. Por otro lado, encontramos la <strong>Abstracción Geométrica</strong> (como el Constructivismo o el Neoplasticismo), la cual es sumamente planificada y matemática; utiliza líneas rectas, figuras geométricas perfectas y colores planos y primarios para buscar un orden lógico, la pureza visual y la bidimensionalidad absoluta del lienzo.</p>
+                    <div class="image-gallery">
+                        <div class="image-box">
+                            <img src="https://upload.wikimedia.org/wikipedia/commons/c/c5/Theo_van_Doesburg_Composition_en_dissonances.jpg" alt="Abstracción Geométrica">
+                            <div class="image-caption">Enfoque Geométrico</div>
+                        </div>
+                        <div class="image-box">
+                            <img src="https://upload.wikimedia.org/wikipedia/commons/5/52/Kazimir_Malevich_-_Black_Suprematistic_Square.jpg" alt="Suprematismo">
+                            <div class="image-caption">Suprematismo Ruso</div>
+                        </div>
+                        <div class="image-box">
+                            <img src="https://upload.wikimedia.org/wikipedia/commons/c/ce/Kandinsky_-_Composition_7.jpg" alt="Abstracción Lírica">
+                            <div class="image-caption">Expresión Lírica</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Sección 3: Lo Más Reconocido -->
+            <div class="art-section">
+                <button class="section-trigger">Lo Más Reconocido</button>
+                <div class="section-content">
+                    <p>A lo largo de la historia, varias obras marcaron hitos insólitos en el mundo del arte. El "Cuadrado Negro" de Kazimir Malévich (1915) llevó la abstracción al punto cero, despojando al arte de cualquier distracción formal. A mediados de siglo, las colosales pinturas de Jackson Pollock revolucionaron la escena con su técnica de "dripping" (goteo), donde el lienzo se colocaba en el suelo y el artista danzaba alrededor dejando caer la pintura directo de botes perforados. Asimismo, las magnas capillas de color de Mark Rothko, formadas por inmensos bloques rectangulares difuminados, se convirtieron en referentes mundiales de la corriente "Color Field", invitando al espectador a una experiencia casi religiosa y de meditación profunda.</p>
+                    <div class="image-gallery">
+                        <div class="image-box">
+                            <img src="https://upload.wikimedia.org/wikipedia/commons/c/b0/Wassily_Kandinsky%2C_1923_-_Composition_VIII.jpg" alt="Composición VIII">
+                            <div class="image-caption">Composición VIII (1923)</div>
+                        </div>
+                        <div class="image-box">
+                            <img src="https://upload.wikimedia.org/wikipedia/commons/0/07/Piet_Mondrian_-_Composition_with_Grid_IX_-_1919.jpg" alt="Mondrian Grid">
+                            <div class="image-caption">Composición con Rejilla</div>
+                        </div>
+                        <div class="image-box">
+                            <img src="https://upload.wikimedia.org/wikipedia/commons/a/a2/Paul_Klee_-_Cat_and_Bird_-_1928.jpg" alt="Paul Klee">
+                            <div class="image-caption">Gato y Pájaro - Klee</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Sección 4: Los Pintores Más Famosos -->
+            <div class="art-section">
+                <button class="section-trigger">Los Pintores Más Famosos</button>
+                <div class="section-content">
+                    <p>Los pilares de este movimiento transformaron radicalmente la cultura visual de la humanidad. <strong>Wassily Kandinsky</strong> aportó las bases teóricas y la conexión mística del color. <strong>Piet Mondrian</strong> redujo la pintura a líneas negras verticales y horizontales rellenas de colores primarios para hallar el equilibrio universal. En Norteamérica, figuras como <strong>Jackson Pollock</strong> introdujeron la violencia del cuerpo en la acción de pintar, mientras que pintoras a menudo olvidadas por la historia tradicional, como <strong>Hilma af Klint</strong> o Joan Mitchell, demostraron haber creado lenguajes abstractos sumamente complejos y cargados de simbolismo incluso antes que sus contrapartes masculinas.</p>
+                    <div class="image-gallery">
+                        <div class="image-box">
+                            <img src="https://upload.wikimedia.org/wikipedia/commons/8/8a/Wassily_Kandinsky_1921.jpg" alt="Retrato Kandinsky">
+                            <div class="image-caption">Wassily Kandinsky</div>
+                        </div>
+                        <div class="image-box">
+                            <img src="https://upload.wikimedia.org/wikipedia/commons/b/b3/Piet_Mondriaan_en_studioportret.jpg" alt="Retrato Mondrian">
+                            <div class="image-caption">Piet Mondrian</div>
+                        </div>
+                        <div class="image-box">
+                            <img src="https://upload.wikimedia.org/wikipedia/commons/c/c9/Paul_Klee_1911.jpg" alt="Retrato Paul Klee">
+                            <div class="image-caption">Paul Klee</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+    </div>
+
+    <script>
+        /* --- 1. MOTOR DE FONDO ABSTRACTO Y DESTELLOS (HTML5 CANVAS) --- */
+        const canvas = document.getElementById('abstract-canvas');
+        const ctx = canvas.getContext('2d');
+
+        let width = canvas.width = window.innerWidth;
+        let height = canvas.height = window.innerHeight;
+
+        window.addEventListener('resize', () => {
+            width = canvas.width = window.innerWidth;
+            height = canvas.height = window.innerHeight;
+            generarPinturaEstatica(); // Redibuja el fondo sin romper la composición
+        });
+
+        // Configuración de colores aleatorios pero armoniosos
+        function randomRange(min, max) { return Math.random() * (max - min) + min; }
+        function randomColor(alpha = 1) {
+            const h = Math.floor(randomRange(0, 360));
+            const s = Math.floor(randomRange(65, 95));
+            const l = Math.floor(randomRange(40, 60));
+            return `hsla(${h}, ${s}%, ${l}%, ${alpha})`;
+        }
+
+        // Elementos fijos de la "Pintura Abstracta" de fondo
+        let elementosArte = [];
+        function inicializarArteFondo() {
+            elementosArte = [];
+            // Crear "manchas" orgánicas grandes tipo acuarela/óleo
+            for(let i=0; i<8; i++) {
+                elementosArte.push({
+                    tipo: 'mancha',
+                    x: randomRange(0, width),
+                    y: randomRange(0, height),
+                    r: randomRange(150, 400),
+                    color: randomColor(0.25)
+                });
+            }
+            // Crear líneas/trazos geométricos duros estilo Kandinsky/Mondrian
+            for(let i=0; i<12; i++) {
+                elementosArte.push({
+                    tipo: 'linea',
+                    x1: randomRange(0, width),
+                    y1: randomRange(0, height),
+                    x2: randomRange(0, width),
+                    y2: randomRange(0, height),
+                    ancho: randomRange(2, 15),
+                    color: randomColor(0.3)
+                });
+            }
+            // Formas geométricas definidas abstractas
+            for(let i=0; i<10; i++) {
+                elementosArte.push({
+                    tipo: 'circulo',
+                    x: randomRange(0, width),
+                    y: randomRange(0, height),
+                    r: randomRange(10, 80),
+                    color: randomColor(0.2),
+                    border: Math.random() > 0.5
+                });
+            }
+        }
+
+        function generarPinturaEstatica() {
+            // Fondo degradado base cósmico/oscuro
+            let gradient = ctx.createLinearGradient(0, 0, width, height);
+            gradient.addColorStop(0, '#0b0914');
+            gradient.addColorStop(0.5, '#161129');
+            gradient.addColorStop(1, '#080511');
+            ctx.fillStyle = gradient;
+            ctx.fillRect(0, 0, width, height);
+
+            // Renderizar la pintura abstracta generada
+            elementosArte.forEach(el => {
+                ctx.save();
+                if(el.tipo === 'mancha') {
+                    let g = ctx.createRadialGradient(el.x, el.y, 0, el.x, el.y, el.r);
+                    g.addColorStop(0, el.color);
+                    g.addColorStop(1, 'transparent');
+                    ctx.fillStyle = g;
+                    ctx.beginPath();
+                    ctx.arc(el.x, el.y, el.r, 0, Math.PI*2);
+                    ctx.fill();
+                } 
+                else if(el.tipo === 'linea') {
+                    ctx.strokeStyle = el.color;
+                    ctx.lineWidth = el.ancho;
+                    ctx.lineCap = 'round';
+                    ctx.beginPath();
+                    ctx.moveTo(el.x1, el.y1);
+                    ctx.lineTo(el.x2, el.y2);
+                    ctx.stroke();
+                } 
+                else if(el.tipo === 'circulo') {
+                    ctx.beginPath();
+                    ctx.arc(el.x, el.y, el.r, 0, Math.PI*2);
+                    if(el.border) {
+                        ctx.strokeStyle = el.color;
+                        ctx.lineWidth = 3;
+                        ctx.stroke();
+                    } else {
+                        ctx.fillStyle = el.color;
+                        ctx.fill();
+                    }
+                }
+                ctx.restore();
+            });
+        }
+
+        // --- SISTEMA DE DESTELLOS DINÁMICOS (Sparkles flotantes) ---
+        let particulas = [];
+        class Destello {
+            constructor() {
+                this.reset();
+                this.y = randomRange(0, height); // Iniciar esparcidos en toda la pantalla
+            }
+            reset() {
+                this.x = randomRange(0, width);
+                this.y = height + randomRange(10, 50);
+                this.size = randomRange(1, 4);
+                this.speedY = randomRange(0.4, 1.2);
+                this.speedX = randomRange(-0.3, 0.3);
+                this.alpha = randomRange(0.1, 0.8);
+                this.frecuenciaBrillo = randomRange(0.02, 0.05);
+                this.fase = randomRange(0, Math.PI * 2);
+            }
+            update() {
+                this.y -= this.speedY;
+                this.x += this.speedX;
+                this.fase += this.frecuenciaBrillo;
+                
+                // Si sale de la pantalla superior o laterales reinicia abajo
+                if (this.y < -10 || this.x < -10 || this.x > width + 10) {
+                    this.reset();
+                }
+            }
+            draw() {
+                // Modulación matemática para simular un destello orgánico
+                let alphaVivo = this.alpha * (Math.sin(this.fase) * 0.4 + 0.6);
+                ctx.save();
+                ctx.shadowBlur = randomRange(10, 20);
+                ctx.shadowColor = "#ffffff";
+                ctx.fillStyle = `rgba(255, 255, 255, ${alphaVivo})`;
+                
+                // Dibujar destello con forma de rombo/estrella pequeña
+                ctx.beginPath();
+                ctx.moveTo(this.x, this.y - this.size * 1.5);
+                ctx.lineTo(this.x + this.size, this.y);
+                ctx.lineTo(this.x, this.y + this.size * 1.5);
+                ctx.lineTo(this.x - this.size, this.y);
+                ctx.closePath();
+                ctx.fill();
+                ctx.restore();
+            }
+        }
+
+        // Inicialización del entorno visual
+        inicializarArteFondo();
+        for(let i = 0; i < 45; i++) {
+            particulas.push(new Destello());
+        }
+
+        // Bucle de animación continuo
+        function loopAnimacion() {
+            generarPinturaEstatica(); // Dibuja la base artística abstracta fija
+            
+            particulas.forEach(p => {
+                p.update();
+                p.draw();
+            });
+            requestAnimationFrame(loopAnimacion);
+        }
+        loopAnimacion();
+
+
+        /* --- 2. CONTROL DEL ACORDEÓN DESPLEGABLE (MEJORADO) --- */
+        const triggers = document.querySelectorAll('.section-trigger');
+
+        triggers.forEach(trigger => {
+            trigger.addEventListener('click', function() {
+                const seccionActual = this.parentElement;
+                const contenidoActual = seccionActual.querySelector('.section-content');
+                const estaActivo = seccionActual.classList.contains('active');
+
+                // Cerrar todas las secciones activas limpiamente primero
+                document.querySelectorAll('.art-section').forEach(sec => {
+                    sec.classList.remove('active');
+                    sec.querySelector('.section-content').style.maxHeight = null;
+                });
+
+                // Si la sección no estaba activa, ábrela midiendo su scrollHeight real
+                if (!estaActivo) {
+                    seccionActual.classList.add('active');
+                    contenidoActual.style.maxHeight = contenidoActual.scrollHeight + "px";
+                }
+            });
+        });
+    </script>
+</body>
+</html>

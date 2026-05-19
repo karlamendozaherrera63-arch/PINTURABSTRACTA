@@ -1,0 +1,515 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Lienzo Abstracto Líquido</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+        body {
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            color: #fff;
+            overflow-x: hidden;
+            background-color: #0d0a16;
+            position: relative;
+        }
+
+        /* Lienzo interactivo general */
+        #canvas-oleo {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: -2;
+            pointer-events: none;
+        }
+
+        /* Capa de contraste para asegurar legibilidad */
+        .overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(13, 10, 22, 0.4);
+            backdrop-filter: blur(4px);
+            -webkit-backdrop-filter: blur(4px);
+            z-index: -1;
+            pointer-events: none;
+        }
+
+        header {
+            text-align: center;
+            padding: 50px 20px 20px;
+            z-index: 10;
+            position: relative;
+        }
+
+        /* Contenedor especial para detectar toques en las letras individuales */
+        header h1 {
+            font-size: 3.8rem;
+            text-transform: uppercase;
+            letter-spacing: 6px;
+            font-weight: 900;
+            display: inline-block;
+            cursor: pointer;
+            user-select: none;
+            text-shadow: 0px 4px 20px rgba(0,0,0,0.6);
+        }
+
+        header h1 span {
+            display: inline-block;
+            transition: transform 0.2s ease, color 0.3s;
+        }
+
+        header h1 span:hover {
+            transform: scale(1.1) translateY(-3px);
+        }
+
+        /* Layout Principal */
+        .main-container {
+            display: flex;
+            flex: 1;
+            width: 100%;
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 20px;
+            gap: 30px;
+            z-index: 1;
+        }
+
+        .intro-side {
+            flex: 1;
+            display: flex;
+            align-items: flex-start;
+            position: sticky;
+            top: 20px;
+        }
+
+        .intro-card {
+            background: rgba(255, 255, 255, 0.07);
+            padding: 40px 30px;
+            border-radius: 20px;
+            border: 1px solid rgba(255, 255, 255, 0.15);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            box-shadow: 0 20px 50px rgba(0, 0, 0, 0.4);
+            text-align: center;
+            width: 100%;
+        }
+
+        .intro-card h2 {
+            font-size: 2rem;
+            margin-bottom: 15px;
+            text-shadow: 0 2px 10px rgba(0,0,0,0.5);
+        }
+
+        /* Lado Derecho (Secciones Desplegables) */
+        .sections-side {
+            flex: 1.5;
+            display: flex;
+            flex-direction: column;
+            gap: 25px;
+        }
+
+        .art-section {
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 20px;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+            overflow: hidden;
+            backdrop-filter: blur(8px);
+            -webkit-backdrop-filter: blur(8px);
+            transition: background 0.4s, transform 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275), border-color 0.4s;
+        }
+
+        .art-section:hover {
+            background: rgba(255, 255, 255, 0.09);
+            transform: translateY(-2px);
+            border-color: rgba(255, 255, 255, 0.25);
+        }
+
+        .section-trigger {
+            width: 100%;
+            background: none;
+            border: none;
+            color: white;
+            text-align: left;
+            padding: 30px;
+            font-size: 1.8rem;
+            font-weight: bold;
+            cursor: pointer;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            outline: none;
+            text-shadow: 1px 2px 8px rgba(0,0,0,0.6);
+        }
+
+        .section-trigger::after {
+            content: '+';
+            font-size: 2.2rem;
+            transition: transform 0.4s ease;
+            color: rgba(255,255,255,0.7);
+        }
+
+        .art-section.active {
+            background: rgba(255, 255, 255, 0.12);
+            border-color: rgba(255, 255, 255, 0.35);
+        }
+
+        .art-section.active .section-trigger::after {
+            transform: rotate(135deg);
+            color: #ff0055;
+        }
+
+        .section-content {
+            max-height: 0;
+            overflow: hidden;
+            transition: max-height 0.6s cubic-bezier(0.4, 0, 0.2, 1);
+            padding: 0 30px;
+        }
+
+        .section-content .text-block {
+            font-size: 1.05rem;
+            line-height: 1.75;
+            color: #e2e2e7;
+            margin-bottom: 20px;
+            text-align: justify;
+        }
+
+        .section-content .text-block:first-of-type {
+            border-top: 1px solid rgba(255,255,255,0.15);
+            padding-top: 20px;
+        }
+
+        .section-content p strong {
+            color: #fff;
+            text-shadow: 0 0 10px rgba(255,255,255,0.2);
+        }
+
+        @media (max-width: 950px) {
+            .main-container { flex-direction: column; }
+            .intro-side { position: relative; top: 0; }
+        }
+    </style>
+</head>
+<body>
+
+    <!-- El lienzo vivo de arte abstracto y física de agua -->
+    <canvas id="canvas-oleo"></canvas>
+    <div class="overlay"></div>
+
+    <header>
+        <h1 id="titulo-interactivo">Pintura Abstracta</h1>
+    </header>
+
+    <div class="main-container">
+        
+        <div class="intro-side">
+            <div class="intro-card">
+                <h2>El Arte del Color y la Forma</h2>
+                <p>Haz clic en cualquiera de las secciones de la derecha para desplegar la información histórica detallada y descubrir las galerías de obras auténticas.</p>
+            </div>
+        </div>
+
+        <div class="sections-side">
+
+            <!-- Sección 1: Historia -->
+            <div class="art-section">
+                <button class="section-trigger">Historia</button>
+                <div class="section-content">
+                    <p class="text-block">El origen de la pintura abstracta representa una de las revoluciones ideológicas más radicales en la historia de la cultura humana. No surgió de manera espontánea, sino como la decantación lógica de movimientos precursores de finales del siglo XIX como el Impresionismo, el Postimpresionismo y el Cubismo. Estos movimientos ya habían comenzado a cuestionar la subordinación del arte a la imitación de la naturaleza. A comienzos de la década de 1910, en un escenario europeo marcado por la industrialización acelerada, los descubrimientos de la física cuántica y las tensiones sociopolíticas previas a la Primera Guerra Mundial, los artistas experimentaron una crisis de representación: el mundo exterior ya no parecía estable ni unívoco, por lo que el arte debía volcarse hacia el plano interior.</p>
+                    <p class="text-block">Clave en esta metamorfosis fue la fuerte influencia de las corrientes espirituales y filosóficas de la época, particularmente la teosofía, que proponía la existencia de verdades universales más allá del mundo material perceptible. Los pioneros del abstraccionismo defendían que las formas puras y las vibraciones cromáticas poseían una "necesidad interna" capaz de dialogar de forma directa con el alma del espectador, de forma análoga a como lo hace la música instrumental, la cual no requiere imitar los sonidos cotidianos para despertar profundas respuestas emocionales. Así, el lienzo dejó de ser una ventana al mundo para convertirse en un objeto autónomo cargado de significación propia.</p>
+                </div>
+            </div>
+
+            <!-- Sección 2: Tipos de Pintura -->
+            <div class="art-section">
+                <button class="section-trigger">Tipos de Pintura</button>
+                <div class="section-content">
+                    <p class="text-block">A lo largo de su evolución, el universo de la abstracción se consolidó en torno a dos grandes polaridades conceptuales y estéticas. Por un lado, se sitúa la <strong>Abstracción Lírica u Orgánica</strong>, una vertiente de carácter marcadamente intuitivo, pasional y libre. En esta corriente predomina la improvisación, el automatismo psíquico y el uso de manchas fluidas, formas biomórficas y composiciones asimétricas. El objetivo prioritario es proyectar el temperamento y los estados psicológicos subjetivos del creador directamente sobre la superficie pictórica, asumiendo el error y el azar como componentes legítimos y enriquecedores del proceso creativo.</p>
+                    <p class="text-block">En contraposición absoluta se erige la <strong>Abstracción Geométrica</strong>, fundamentada en la planificación rigurosa, el análisis intelectual y el orden matemático. Influenciada por corrientes como el Constructivismo ruso y el Neoplasticismo holandés, esta disciplina despoja la pintura de cualquier rastro de subjetividad emocional o caótica. A través del uso estricto de líneas rectas, figuras geométricas planas (cuadrados, círculos, rectángulos) y una paleta de colores frecuentemente reducida a los tonos primarios y los no-colores (blanco, negro, gris), busca alcanzar una armonía universal, un equilibrio absoluto y una pureza visual que trascienda las particularidades individuales del artista.</p>
+                </div>
+            </div>
+
+            <!-- Sección 3: Lo Más Reconocido -->
+            <div class="art-section">
+                <button class="section-trigger">Lo Más Reconocido</button>
+                <div class="section-content">
+                    <p class="text-block">El devenir del arte abstracto cuenta con hitos iconográficos esenciales que alteraron permanentemente el mercado artístico y la teoría del diseño. Uno de los puntos de ruptura más drásticos ocurrió en 1915 con la exhibición del <em>Cuadrado Negro</em> de Kazimir Malévich; una obra que el propio autor definió como "el punto cero del arte", un manifiesto radical que eliminaba toda distracción objetiva para proclamar la supremacía de la sensibilidad pura. Décadas más tarde, a mediados del siglo XX, el foco de innovación se trasladó a Nueva York, donde el expresionismo abstracto rompió los esquemas tradicionales de producción a través de la revolucionaria técnica del <em>dripping</em> (goteo) perfeccionada por Jackson Pollock, en la cual el lienzo abandonaba el caballete para colocarse en el suelo, registrando la coreografía física y la energía corporal del pintor.</p>
+                    <p class="text-block">Simultáneamente, la corriente denominada <em>Color Field Painting</em> (Pintura de Campos de Color), abanderada por figuras icónicas como Mark Rothko, exploró el potencial místico y envolvente de las veladuras de color. Las monumentales telas de Rothko, compuestas por rectángulos de bordes difusos que parecen flotar suspendidos unos sobre otros, no pretendían ser ejercicios decorativos; su diseño estaba calculado minuciosamente para provocar experiencias de sobrecogimiento, introspección profunda y una sutil trascendencia espiritual, aislando al espectador del ruido del entorno y sumergiéndolo en una contemplación casi religiosa frente a la inmensidad del color absoluto.</p>
+                </div>
+            </div>
+
+            <!-- Sección 4: Los Pintores Más Famosos -->
+            <div class="art-section">
+                <button class="section-trigger">Los Pintores Más Famosos</button>
+                <div class="section-content">
+                    <p class="text-block">Los grandes referentes del movimiento no solo fueron virtuosos del pincel, sino también teóricos visionarios. <strong>Wassily Kandinsky</strong> es aclamado universalmente como el arquitecto intelectual del grupo, dejando textos fundamentales como <em>"De lo espiritual en el arte"</em>, donde estructuró las equivalencias psicológicas entre colores y formas geométricas. Por su parte, el holandés <strong>Piet Mondrian</strong> dedicó su vida a un proceso de depuración visual implacable; comenzó pintando paisajes naturales realistas hasta reducirlos gradualmente a su estructura elemental de líneas negras ortogonales y bloques puros de azul, rojo y amarillo, buscando un lenguaje estético utópico aplicable a la arquitectura y la vida moderna.</p>
+                    <p class="text-block">Asimismo, figuras de la talla de <strong>Paul Klee</strong> aportaron una sensibilidad única combinando el rigor pedagógico de la escuela Bauhaus con una poética cargada de ironía, música y simbolismo primitivo. Es imperativo destacar la reciente y justa reivindicación histórica de la pintora sueca <strong>Hilma af Klint</strong>; investigaciones académicas contemporáneas han demostrado que Af Klint concibió complejas e inmensas composiciones totalmente abstractas cargadas de simbolismo místico y geométrico a partir de 1906, varios años antes de las primeras acuarelas registradas por Kandinsky o las obras de los círculos artísticos tradicionales de París o Múnich, consolidándose hoy como la verdadera pionera cronológica del movimiento.</p>
+                </div>
+            </div>
+
+        </div>
+    </div>
+
+    <script>
+        /* --- 1. PREPARACIÓN DEL TÍTULO POR LETRAS --- */
+        const titulo = document.getElementById('titulo-interactivo');
+        const letras = titulo.innerText.split('');
+        titulo.innerHTML = '';
+        
+        const coloresGotas = ['#ff0055', '#00f0ff', '#ffb700', '#9d00ff', '#00ff66'];
+
+        letras.forEach(letra => {
+            const span = document.createElement('span');
+            span.innerText = letra === ' ' ? '\u00A0' : letra;
+            span.style.color = coloresGotas[Math.floor(Math.random() * coloresGotas.length)];
+            titulo.appendChild(span);
+
+            span.addEventListener('mouseover', (e) => {
+                const rect = e.target.getBoundingClientRect();
+                crearGota(rect.left + rect.width / 2, rect.bottom, span.style.color);
+            });
+            span.addEventListener('touchstart', (e) => {
+                const rect = e.target.getBoundingClientRect();
+                crearGota(rect.left + rect.width / 2, rect.bottom, span.style.color);
+            });
+        });
+
+        /* --- 2. MOTOR DEL CANVAS: PINTURA ABSTRACTA + FÍSICA LÍQUIDA --- */
+        const canvas = document.getElementById('canvas-oleo');
+        const ctx = canvas.getContext('2d');
+
+        let width = canvas.width = window.innerWidth;
+        let height = canvas.height = window.innerHeight;
+
+        window.addEventListener('resize', () => {
+            width = canvas.width = window.innerWidth;
+            height = canvas.height = window.innerHeight;
+        });
+
+        function randomRange(min, max) { return Math.random() * (max - min) + min; }
+        
+        let formasPintura = [];
+        function generarLienzoAbstracto() {
+            formasPintura = [];
+            // Capas de manchas orgánicas gigantes (Fondo Óleo)
+            for (let i = 0; i < 12; i++) {
+                formasPintura.push({
+                    tipo: 'oleo',
+                    x: randomRange(0, width),
+                    y: randomRange(0, height),
+                    rx: randomRange(200, 500),
+                    ry: randomRange(150, 400),
+                    color: `hsla(${randomRange(0, 360)}, ${randomRange(70, 95)}%, ${randomRange(35, 55)}%, ${randomRange(0.2, 0.45)})`,
+                    angle: randomRange(0, Math.PI * 2)
+                });
+            }
+            // Splatters / Salpicaduras de pintura auténticas
+            for (let i = 0; i < 25; i++) {
+                let xCentro = randomRange(0, width);
+                let yCentro = randomRange(0, height);
+                let colorSplatter = `hsla(${randomRange(0, 360)}, 85%, 50%, ${randomRange(0.3, 0.6)})`;
+                let radioBase = randomRange(10, 45);
+                
+                formasPintura.push({ tipo: 'mancha-centro', x: xCentro, y: yCentro, r: radioBase, color: colorSplatter });
+                
+                for(let j=0; j<6; j++){
+                    formasPintura.push({
+                        tipo: 'satelite',
+                        x: xCentro + randomRange(-radioBase*2, radioBase*2),
+                        y: yCentro + randomRange(-radioBase*2, radioBase*2),
+                        r: randomRange(2, 6),
+                        color: colorSplatter
+                    });
+                }
+            }
+            // Trazos estructurales geométricos (Estilo Kandinsky)
+            for (let i = 0; i < 8; i++) {
+                formasPintura.push({
+                    tipo: 'trazo',
+                    x1: randomRange(0, width), y1: randomRange(0, height),
+                    x2: randomRange(0, width), y2: randomRange(0, height),
+                    w: randomRange(4, 25),
+                    color: `hsla(${randomRange(0, 360)}, 90%, 40%, 0.35)`
+                });
+            }
+        }
+
+        function dibujarPinturaBase() {
+            ctx.fillStyle = '#0d0a16';
+            ctx.fillRect(0, 0, width, height);
+
+            formasPintura.forEach(f => {
+                ctx.save();
+                if (f.tipo === 'oleo') {
+                    let g = ctx.createRadialGradient(f.x, f.y, 0, f.x, f.y, f.rx);
+                    g.addColorStop(0, f.color);
+                    g.addColorStop(1, 'transparent');
+                    ctx.fillStyle = g;
+                    ctx.translate(f.x, f.y);
+                    ctx.rotate(f.angle);
+                    ctx.scale(1, f.ry / f.rx);
+                    ctx.beginPath();
+                    ctx.arc(0, 0, f.rx, 0, Math.PI * 2);
+                    ctx.fill();
+                } 
+                else if (f.tipo === 'mancha-centro' || f.tipo === 'satelite') {
+                    ctx.fillStyle = f.color;
+                    ctx.beginPath();
+                    ctx.arc(f.x, f.y, f.r, 0, Math.PI * 2);
+                    ctx.fill();
+                } 
+                else if (f.tipo === 'trazo') {
+                    ctx.strokeStyle = f.color;
+                    ctx.lineWidth = f.w;
+                    ctx.lineCap = 'round';
+                    ctx.beginPath();
+                    ctx.moveTo(f.x1, f.y1);
+                    ctx.lineTo(f.x2, f.y2);
+                    ctx.stroke();
+                }
+                ctx.restore();
+            });
+        }
+
+        /* --- 3. DINÁMICA DE AGUA (ONDAS AL TOCAR SECCIONES) Y GOTAS --- */
+        let ondasAgua = [];
+        let gotasLiquidas = [];
+
+        class OndaAgua {
+            constructor(x, y) {
+                this.x = x;
+                this.y = y;
+                this.radio = 0;
+                this.maxRadio = randomRange(100, 220);
+                this.velocidad = randomRange(3, 6);
+                this.opacidad = 0.6;
+            }
+            update() {
+                this.radio += this.velocidad;
+                this.opacidad -= 0.012;
+            }
+            draw() {
+                ctx.save();
+                ctx.strokeStyle = `rgba(255, 255, 255, ${this.opacidad})`;
+                ctx.lineWidth = 3;
+                ctx.shadowBlur = 15;
+                ctx.shadowColor = "rgba(255,255,255,0.3)";
+                ctx.beginPath();
+                ctx.arc(this.x, this.y, this.radio, 0, Math.PI * 2);
+                ctx.stroke();
+                ctx.restore();
+            }
+        }
+
+        class GotaPintura {
+            constructor(x, y, color) {
+                this.x = x;
+                this.y = y;
+                this.color = color;
+                this.r = randomRange(4, 8);
+                this.vY = randomRange(1, 2);
+                this.vX = randomRange(-0.5, 0.5);
+                this.gravedad = 0.18;
+                this.vida = 1;
+            }
+            update() {
+                this.vY += this.gravedad;
+                this.y += this.vY;
+                this.x += this.vX;
+                if (this.y > height - 10) {
+                    this.vida -= 0.05;
+                    this.r += 0.5;
+                    this.vY = 0;
+                    this.vX = 0;
+                }
+            }
+            draw() {
+                ctx.save();
+                ctx.fillStyle = this.color;
+                ctx.shadowBlur = 10;
+                ctx.shadowColor = this.color;
+                ctx.beginPath();
+                if(this.vY > 0) {
+                    ctx.ellipse(this.x, this.y, this.r * 0.8, this.r * 1.3, 0, 0, Math.PI * 2);
+                } else {
+                    ctx.arc(this.x, this.y, this.r, 0, Math.PI * 2);
+                }
+                ctx.fill();
+                ctx.restore();
+            }
+        }
+
+        function crearGota(x, y, color) {
+            gotasLiquidas.push(new GotaPintura(x, y, color));
+        }
+
+        const modulosArte = document.querySelectorAll('.art-section, .intro-card');
+        modulosArte.forEach(modulo => {
+            const desatarEfectoAgua = (e) => {
+                let xMouse = e.clientX || (e.touches && e.touches[0].clientX);
+                let yMouse = e.clientY || (e.touches && e.touches[0].clientY);
+                if(xMouse && yMouse) {
+                    ondasAgua.push(new OndaAgua(xMouse, yMouse));
+                }
+            };
+            modulo.addEventListener('mousemove', desatarEfectoAgua);
+            modulo.addEventListener('touchstart', desatarEfectoAgua);
+        });
+
+        generarLienzoAbstracto();
+
+        function bucleLiquido() {
+            dibujarPinturaBase();
+
+            ondasAgua = ondasAgua.filter(o => o.opacidad > 0);
+            ondasAgua.forEach(o => {
+                o.update();
+                o.draw();
+            });
+
+            gotasLiquidas = gotasLiquidas.filter(g => g.vida > 0 && g.y < height + 20);
+            gotasLiquidas.forEach(g => {
+                g.update();
+                g.draw();
+            });
+
+            requestAnimationFrame(bucleLiquido);
+        }
+        bucleLiquido();
+
+        /* --- 4. CONTROL DEL ACORDEÓN DESPLEGABLE --- */
+        const triggers = document.querySelectorAll('.section-trigger');
+
+        triggers.forEach(trigger => {
+            trigger.addEventListener('click', function() {
+                const seccionActual = this.parentElement;
+                const contenidoActual = seccionActual.querySelector('.section-content');
+                const estaActivo = seccionActual.classList.contains('active');
+
+                document.querySelectorAll('.art-section').forEach(sec => {
+                    sec.classList.remove('active');
+                    sec.querySelector('.section-content').style.maxHeight = null;
+                });
+
+                if (!estaActivo) {
+                    seccionActual.classList.add('active');
+                    contenidoActual.style.maxHeight = contenidoActual.scrollHeight + "px";
+                }
+            });
+        });
+    </script>
+</body>
+</html>

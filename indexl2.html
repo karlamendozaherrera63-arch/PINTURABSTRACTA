@@ -1,0 +1,318 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Pintura Abstracta</title>
+    <style>
+        /* Estilos Base e Identidad Visual */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+        body {
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            transition: background 1s ease;
+            color: #fff;
+            overflow-x: hidden;
+        }
+
+        .overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.4);
+            backdrop-filter: blur(8px);
+            z-index: -1;
+        }
+
+        header {
+            text-align: center;
+            padding: 40px 20px;
+            z-index: 10;
+        }
+
+        header h1 {
+            font-size: 3.5rem;
+            text-transform: uppercase;
+            letter-spacing: 4px;
+            text-shadow: 2px 4px 10px rgba(0,0,0,0.5);
+        }
+
+        /* Layout Principal */
+        .main-container {
+            display: flex;
+            flex: 1;
+            width: 100%;
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 20px;
+            gap: 30px;
+        }
+
+        .intro-side {
+            flex: 1;
+            display: flex;
+            align-items: flex-start;
+            padding-top: 20px;
+        }
+
+        .intro-card {
+            background: rgba(255, 255, 255, 0.1);
+            padding: 30px;
+            border-radius: 15px;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+            text-align: center;
+            width: 100%;
+        }
+
+        /* Contenedor del Lado Derecho */
+        .sections-side {
+            flex: 1.5;
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+        }
+
+        /* Estilo de la Sección Botón (Acordeón) */
+        .art-section {
+            background: rgba(255, 255, 255, 0.12);
+            border-radius: 15px;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+            overflow: hidden;
+            transition: background 0.3s ease, transform 0.3s ease;
+        }
+
+        .art-section:hover {
+            background: rgba(255, 255, 255, 0.18);
+            transform: translateX(5px);
+        }
+
+        /* Botón que activa la sección */
+        .section-trigger {
+            width: 100%;
+            background: none;
+            border: none;
+            color: white;
+            text-align: left;
+            padding: 25px 30px;
+            font-size: 1.8rem;
+            font-weight: bold;
+            cursor: pointer;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            outline: none;
+            text-shadow: 1px 2px 5px rgba(0,0,0,0.3);
+        }
+
+        /* Icono indicador (+ / -) */
+        .section-trigger::after {
+            content: '+';
+            font-size: 2rem;
+            transition: transform 0.3s ease;
+        }
+
+        /* Cambios visuales cuando la sección está activa */
+        .art-section.active {
+            background: rgba(255, 255, 255, 0.25);
+            box-shadow: 0 15px 40px rgba(0,0,0,0.4);
+        }
+
+        .art-section.active .section-trigger::after {
+            content: '−';
+            transform: rotate(180deg);
+        }
+
+        /* Contenedor del Contenido Oculto */
+        .section-content {
+            max-height: 0;
+            overflow: hidden;
+            transition: max-height 0.5s cubic-bezier(0, 1, 0, 1); /* Animación suave de apertura */
+            padding: 0 30px;
+        }
+
+        /* Cuando está activo, mostramos el contenido */
+        .art-section.active .section-content {
+            max-height: 1000px; /* Altura máxima para permitir la expansión */
+            transition: max-height 0.8s cubic-bezier(1, 0, 1, 0);
+            padding-bottom: 30px;
+        }
+
+        .section-content p {
+            font-size: 1.1rem;
+            line-height: 1.6;
+            margin-bottom: 25px;
+            border-top: 1px solid rgba(255,255,255,0.2);
+            padding-top: 15px;
+        }
+
+        /* Galería de Imágenes (3 por sección) */
+        .image-gallery {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 15px;
+        }
+
+        .image-box {
+            position: relative;
+            overflow: hidden;
+            border-radius: 10px;
+            height: 150px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.3);
+        }
+
+        .image-box img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            transition: transform 0.5s ease, filter 0.5s ease;
+            filter: grayscale(20%);
+        }
+
+        .image-box:hover img {
+            transform: scale(1.15);
+            filter: grayscale(0%);
+        }
+
+        /* Responsivo */
+        @media (max-width: 900px) {
+            .main-container {
+                flex-direction: column;
+            }
+            .image-gallery {
+                grid-template-columns: 1fr;
+            }
+            .image-box {
+                height: 180px;
+            }
+        }
+    </style>
+</head>
+<body>
+
+    <div class="overlay"></div>
+
+    <header>
+        <h1>Pintura Abstracta</h1>
+    </header>
+
+    <div class="main-container">
+        
+        <!-- Lado Izquierdo (Introducción) -->
+        <div class="intro-side">
+            <div class="intro-card">
+                <h2>El Arte del Color y la Forma</h2>
+                <p>Haz clic en cualquiera de las secciones de la derecha para desplegar la información y descubrir las galerías ocultas.</p>
+            </div>
+        </div>
+
+        <!-- Lado Derecho (Secciones Desplegables) -->
+        <div class="sections-side">
+
+            <!-- Sección 1: Historia -->
+            <div class="art-section">
+                <button class="section-trigger">Historia</button>
+                <div class="section-content">
+                    <p>La pintura abstracta surgió a inicios del siglo XX como un rechazo al arte figurativo tradicional. Los artistas buscaron expresar emociones puras y conceptos espirituales prescindiendo de las formas del mundo real.</p>
+                    <div class="image-gallery">
+                        <div class="image-box"><img src="https://picsum.photos/400/300?random=1" alt="Historia 1"></div>
+                        <div class="image-box"><img src="https://picsum.photos/400/300?random=2" alt="Historia 2"></div>
+                        <div class="image-box"><img src="https://picsum.photos/400/300?random=3" alt="Historia 3"></div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Sección 2: Tipos de Pintura -->
+            <div class="art-section">
+                <button class="section-trigger">Tipos de Pintura</button>
+                <div class="section-content">
+                    <p>Desde el expresionismo abstracto y el informalismo, hasta la abstracción geométrica y el arte cinético. Cada vertiente utiliza la textura, la línea y el color de maneras radicalmente distintas.</p>
+                    <div class="image-gallery">
+                        <div class="image-box"><img src="https://picsum.photos/400/300?random=4" alt="Tipos 1"></div>
+                        <div class="image-box"><img src="https://picsum.photos/400/300?random=5" alt="Tipos 2"></div>
+                        <div class="image-box"><img src="https://picsum.photos/400/300?random=6" alt="Tipos 3"></div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Sección 3: Lo Más Reconocido -->
+            <div class="art-section">
+                <button class="section-trigger">Lo Más Reconocido</button>
+                <div class="section-content">
+                    <p>Grandes obras maestras que rompieron récords y esquemas. Cuadros llenos de dinamismo, manchas caóticas calculadas y composiciones geométricas que alteraron la historia del arte moderno para siempre.</p>
+                    <div class="image-gallery">
+                        <div class="image-box"><img src="https://picsum.photos/400/300?random=7" alt="Reconocido 1"></div>
+                        <div class="image-box"><img src="https://picsum.photos/400/300?random=8" alt="Reconocido 2"></div>
+                        <div class="image-box"><img src="https://picsum.photos/400/300?random=9" alt="Reconocido 3"></div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Sección 4: Los Pintores Más Famosos -->
+            <div class="art-section">
+                <button class="section-trigger">Los Pintores Más Famosos</button>
+                <div class="section-content">
+                    <p>Pioneros e íconos indiscutibles como Vasili Kandinski (considerado el padre de la abstracción), Jackson Pollock con su técnica de goteo (dripping), Mark Rothko y Piet Mondrian.</p>
+                    <div class="image-gallery">
+                        <div class="image-box"><img src="https://picsum.photos/400/300?random=10" alt="Pintores 1"></div>
+                        <div class="image-box"><img src="https://picsum.photos/400/300?random=11" alt="Pintores 2"></div>
+                        <div class="image-box"><img src="https://picsum.photos/400/300?random=12" alt="Pintores 3"></div>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+    </div>
+
+    <script>
+        // 1. Generador de Fondo Aleatorio (Ejecuta cada vez que se actualiza)
+        function generarColorVivo() {
+            const h = Math.floor(Math.random() * 360);
+            const s = Math.floor(Math.random() * 30) + 70; // 70% - 100%
+            const l = Math.floor(Math.random() * 20) + 40; // 40% - 60%
+            return `hsl(${h}, ${s}%, ${l}%)`;
+        }
+
+        function aplicarFondoAbstracto() {
+            const color1 = generarColorVivo();
+            const color2 = generarColorVivo();
+            const color3 = generarColorVivo();
+            const angulo = Math.floor(Math.random() * 360);
+            document.body.style.background = `linear-gradient(${angulo}deg, ${color1}, ${color2}, ${color3})`;
+        }
+
+        window.onload = aplicarFondoAbstracto;
+
+        // 2. JavaScript para Mostrar / Ocultar la información al hacer click
+        const triggers = document.querySelectorAll('.section-trigger');
+        const todasLasSecciones = document.querySelectorAll('.art-section');
+
+        triggers.forEach(trigger => {
+            trigger.addEventListener('click', function() {
+                const seccionActual = this.parentElement;
+
+                // Si la sección que tocamos ya está abierta, la cerramos
+                if (seccionActual.classList.contains('active')) {
+                    seccionActual.classList.remove('active');
+                } else {
+                    // Cerramos cualquier otra sección que esté abierta actualmente
+                    todasLasSecciones.forEach(sec => sec.classList.remove('active'));
+                    
+                    // Abrimos la sección seleccionada
+                    seccionActual.classList.add('active');
+                }
+            });
+        });
+    </script>
+</body>
+</html>

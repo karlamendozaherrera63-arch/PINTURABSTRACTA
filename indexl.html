@@ -1,0 +1,283 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Pintura Abstracta</title>
+    <style>
+        /* Estilos Base e Identidad Visual */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+        body {
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            transition: background 1s ease; /* Transición suave para el fondo */
+            color: #fff;
+            overflow-x: hidden;
+        }
+
+        /* Capa de superposición para asegurar la legibilidad del texto */
+        .overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.4);
+            backdrop-filter: blur(8px);
+            z-index: -1;
+        }
+
+        /* Encabezado */
+        header {
+            text-align: center;
+            padding: 40px 20px;
+            z-index: 10;
+        }
+
+        header h1 {
+            font-size: 3.5rem;
+            text-transform: uppercase;
+            letter-spacing: 4px;
+            text-shadow: 2px 4px 10px rgba(0,0,0,0.5);
+            animation: fader In 1.5s ease-out;
+        }
+
+        /* Contenedor Principal (Layout) */
+        .main-container {
+            display: flex;
+            flex: 1;
+            width: 100%;
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 20px;
+            gap: 30px;
+        }
+
+        /* Espacio izquierdo (puedes usarlo para una intro o dejarlo libre) */
+        .intro-side {
+            flex: 1;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+
+        .intro-card {
+            background: rgba(255, 255, 255, 0.1);
+            padding: 30px;
+            border-radius: 15px;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+            text-align: center;
+        }
+
+        /* Contenedor de las 4 Secciones del Lado Derecho */
+        .sections-side {
+            flex: 1.5;
+            display: flex;
+            flex-direction: column;
+            gap: 40px;
+        }
+
+        /* Estilo de cada Sección */
+        .art-section {
+            background: rgba(255, 255, 255, 0.15);
+            border-radius: 15px;
+            padding: 30px;
+            border: 1px solid rgba(255, 255, 255, 0.25);
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+            transition: transform 0.4s ease, background 0.4s ease, box-shadow 0.4s ease;
+        }
+
+        /* Efecto JavaScript / CSS al pasar el mouse por la sección */
+        .art-section:hover {
+            transform: translateY(-5px) scale(1.01);
+            background: rgba(255, 255, 255, 0.25);
+            box-shadow: 0 15px 40px rgba(0,0,0,0.4);
+        }
+
+        .art-section h2 {
+            font-size: 2rem;
+            margin-bottom: 15px;
+            border-bottom: 2px solid rgba(255,255,255,0.5);
+            padding-bottom: 5px;
+            text-shadow: 1px 2px 5px rgba(0,0,0,0.3);
+        }
+
+        .art-section p {
+            font-size: 1.05rem;
+            line-height: 1.6;
+            margin-bottom: 20px;
+        }
+
+        /* Galería de Imágenes (3 por sección) */
+        .image-gallery {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 15px;
+        }
+
+        .image-box {
+            position: relative;
+            overflow: hidden;
+            border-radius: 10px;
+            height: 150px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.3);
+        }
+
+        .image-box img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            transition: transform 0.5s ease, filter 0.5s ease;
+            filter: grayscale(30%);
+        }
+
+        /* Efecto al pasar el mouse sobre las imágenes */
+        .image-box:hover img {
+            transform: scale(1.15) rotate(1deg);
+            filter: grayscale(0%);
+        }
+
+        /* Animación de entrada */
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        /* Responsivo para pantallas pequeñas */
+        @media (max-width: 900px) {
+            .main-container {
+                flex-direction: column;
+            }
+            .image-gallery {
+                grid-template-columns: 1fr;
+            }
+            .image-box {
+                height: 200px;
+            }
+        }
+    </style>
+</head>
+<body>
+
+    <!-- Fondo desenfocado para mantener legibilidad -->
+    <div class="overlay"></div>
+
+    <header>
+        <h1>Pintura Abstracta</h1>
+    </header>
+
+    <div class="main-container">
+        
+        <!-- Lado Izquierdo (Introducción) -->
+        <div class="intro-side">
+            <div class="intro-card">
+                <h2>El Arte del Color y la Forma</h2>
+                <p>Una exploración visual donde los colores cambian constantemente, emulando la naturaleza libre y cambiante del expresionismo abstracto.</p>
+            </div>
+        </div>
+
+        <!-- Lado Derecho (Las 4 Secciones) -->
+        <div class="sections-side">
+
+            <!-- Sección 1: Historia -->
+            <section class="art-section">
+                <h2>Historia</h2>
+                <p>La pintura abstracta surgió a inicios del siglo XX como un rechazo al arte figurativo tradicional. Los artistas buscaron expresar emociones puras y conceptos espirituales prescindiendo de las formas del mundo real.</p>
+                <div class="image-gallery">
+                    <div class="image-box"><img src="https://picsum.photos/400/300?random=1" alt="Historia 1"></div>
+                    <div class="image-box"><img src="https://picsum.photos/400/300?random=2" alt="Historia 2"></div>
+                    <div class="image-box"><img src="https://picsum.photos/400/300?random=3" alt="Historia 3"></div>
+                </div>
+            </section>
+
+            <!-- Sección 2: Tipos de Pintura -->
+            <section class="art-section">
+                <h2>Tipos de Pintura</h2>
+                <p>Desde el expresionismo abstracto y el informalismo, hasta la abstracción geométrica y el arte cinético. Cada vertiente utiliza la textura, la línea y el color de maneras radicalmente distintas.</p>
+                <div class="image-gallery">
+                    <div class="image-box"><img src="https://picsum.photos/400/300?random=4" alt="Tipos 1"></div>
+                    <div class="image-box"><img src="https://picsum.photos/400/300?random=5" alt="Tipos 2"></div>
+                    <div class="image-box"><img src="https://picsum.photos/400/300?random=6" alt="Tipos 3"></div>
+                </div>
+            </section>
+
+            <!-- Sección 3: Lo Más Reconocido -->
+            <section class="art-section">
+                <h2>Lo Más Reconocido</h2>
+                <p>Grandes obras maestras que rompieron récords y esquemas. Cuadros llenos de dinamismo, manchas caóticas calculadas y composiciones geométricas que alteraron la historia del arte moderno para siempre.</p>
+                <div class="image-gallery">
+                    <div class="image-box"><img src="https://picsum.photos/400/300?random=7" alt="Reconocido 1"></div>
+                    <div class="image-box"><img src="https://picsum.photos/400/300?random=8" alt="Reconocido 2"></div>
+                    <div class="image-box"><img src="https://picsum.photos/400/300?random=9" alt="Reconocido 3"></div>
+                </div>
+            </section>
+
+            <!-- Sección 4: Los Pintores Más Famosos -->
+            <section class="art-section">
+                <h2>Los Pintores Más Famosos</h2>
+                <p>Pioneros e íconos indiscutibles como Vasili Kandinski (considerado el padre de la abstracción), Jackson Pollock con su técnica de goteo (dripping), Mark Rothko y Piet Mondrian.</p>
+                <div class="image-gallery">
+                    <div class="image-box"><img src="https://picsum.photos/400/300?random=10" alt="Pintores 1"></div>
+                    <div class="image-box"><img src="https://picsum.photos/400/300?random=11" alt="Pintores 2"></div>
+                    <div class="image-box"><img src="https://picsum.photos/400/300?random=12" alt="Pintores 3"></div>
+                </div>
+            </section>
+
+        </div>
+    </div>
+
+    <!-- JavaScript para Efectos y Color de Fondo Aleatorio -->
+    <script>
+        // 1. Función para generar un color en formato HSL (colores vivos e intensos ideales para arte abstracto)
+        function generarColorVivo() {
+            const h = Math.floor(Math.random() * 360); // Tono de 0 a 360
+            const s = Math.floor(Math.random() * 30) + 70; // Saturación alta (70% - 100%)
+            const l = Math.floor(Math.random() * 20) + 40; // Luminosidad equilibrada (40% - 60%)
+            return `hsl(${h}, ${s}%, ${l}%)`;
+        }
+
+        // 2. Aplicar el degradado dinámico al cargar o actualizar la página
+        function aplicarFondoAbstracto() {
+            const color1 = generarColorVivo();
+            const color2 = generarColorVivo();
+            const color3 = generarColorVivo();
+            const angulo = Math.floor(Math.random() * 360);
+
+            // Genera un degradado de 3 colores con un ángulo aleatorio
+            document.body.style.background = `linear-gradient(${angulo}deg, ${color1}, ${color2}, ${color3})`;
+        }
+
+        // Ejecutar la función de fondo inmediatamente al cargar la página
+        window.onload = aplicarFondoAbstracto;
+
+        // 3. Efecto interactivo adicional con JavaScript:
+        // Las secciones reaccionarán ligeramente al movimiento del mouse dentro de ellas
+        const secciones = document.querySelectorAll('.art-section');
+
+        secciones.forEach(seccion => {
+            seccion.addEventListener('mousemove', (e) => {
+                const rect = seccion.getBoundingClientRect();
+                const x = e.clientX - rect.left - (rect.width / 2);
+                const y = e.clientY - rect.top - (rect.height / 2);
+                
+                // Rotación leve basada en la posición del cursor
+                seccion.style.transform = `translateY(-5px) rotateX(${y * -0.02}deg) rotateY(${x * 0.02}deg) scale(1.02)`;
+            });
+
+            seccion.addEventListener('mouseleave', () => {
+                // Restablecer la posición original
+                seccion.style.transform = 'translateY(0) rotateX(0) rotateY(0) scale(1)';
+            });
+        });
+    </script>
+</body>
+</html>
