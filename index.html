@@ -40,7 +40,7 @@
             left: 0;
             width: 100%;
             height: 100%;
-            background: rgba(13, 10, 22, 0.4);
+            background: rgba(13, 10, 22, 0.3);
             backdrop-filter: blur(4px);
             -webkit-backdrop-filter: blur(4px);
             z-index: -1;
@@ -68,11 +68,12 @@
 
         header h1 span {
             display: inline-block;
-            transition: transform 0.2s ease, color 0.3s;
+            transition: color 0.3s ease; 
+            will-change: transform;
         }
 
         header h1 span:hover {
-            transform: scale(1.1) translateY(-3px);
+            color: #fff !important;
         }
 
         /* Layout Principal */
@@ -122,20 +123,23 @@
         }
 
         .art-section {
-            background: rgba(255, 255, 255, 0.05);
+            /* El color de fondo base se inyectará con JS usando variables CSS */
+            background: var(--bg-color, rgba(255, 255, 255, 0.05));
             border-radius: 20px;
-            border: 1px solid rgba(255, 255, 255, 0.1);
+            border: 1px solid var(--border-color, rgba(255, 255, 255, 0.1));
             box-shadow: 0 10px 30px rgba(0,0,0,0.3);
             overflow: hidden;
             backdrop-filter: blur(8px);
             -webkit-backdrop-filter: blur(8px);
-            transition: background 0.4s, transform 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275), border-color 0.4s;
+            /* Transición suave para cuando cambia el tamaño y el resplandor de neón */
+            transition: background 0.4s, transform 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275), border-color 0.4s, box-shadow 0.4s;
         }
 
+        /* EFECTO NUEVO: Iluminación reactiva personalizada al pasar el mouse */
         .art-section:hover {
-            background: rgba(255, 255, 255, 0.09);
-            transform: translateY(-2px);
-            border-color: rgba(255, 255, 255, 0.25);
+            transform: translateY(-5px) scale(1.01);
+            border-color: var(--neon-color);
+            box-shadow: 0 15px 35px var(--shadow-color);
         }
 
         .section-trigger {
@@ -153,23 +157,30 @@
             align-items: center;
             outline: none;
             text-shadow: 1px 2px 8px rgba(0,0,0,0.6);
+            transition: color 0.3s;
+        }
+
+        /* Al pasar el mouse por el botón, este se tiñe del color de la sección */
+        .art-section:hover .section-trigger {
+            color: var(--neon-color);
         }
 
         .section-trigger::after {
             content: '+';
             font-size: 2.2rem;
-            transition: transform 0.4s ease;
+            transition: transform 0.4s ease, color 0.4s;
             color: rgba(255,255,255,0.7);
         }
 
+        /* Cuando está activo, el borde brilla intensamente */
         .art-section.active {
-            background: rgba(255, 255, 255, 0.12);
-            border-color: rgba(255, 255, 255, 0.35);
+            border-color: var(--neon-color);
+            box-shadow: 0 10px 40px var(--shadow-color);
         }
 
         .art-section.active .section-trigger::after {
             transform: rotate(135deg);
-            color: #ff0055;
+            color: var(--neon-color);
         }
 
         .section-content {
@@ -205,7 +216,6 @@
 </head>
 <body>
 
-    <!-- El lienzo vivo de arte abstracto y física de agua -->
     <canvas id="canvas-oleo"></canvas>
     <div class="overlay"></div>
 
@@ -224,16 +234,14 @@
 
         <div class="sections-side">
 
-            <!-- Sección 1: Historia -->
             <div class="art-section">
                 <button class="section-trigger">Historia</button>
                 <div class="section-content">
                     <p class="text-block">El origen de la pintura abstracta representa una de las revoluciones ideológicas más radicales en la historia de la cultura humana. No surgió de manera espontánea, sino como la decantación lógica de movimientos precursores de finales del siglo XIX como el Impresionismo, el Postimpresionismo y el Cubismo. Estos movimientos ya habían comenzado a cuestionar la subordinación del arte a la imitación de la naturaleza. A comienzos de la década de 1910, en un escenario europeo marcado por la industrialización acelerada, los descubrimientos de la física cuántica y las tensiones sociopolíticas previas a la Primera Guerra Mundial, los artistas experimentaron una crisis de representación: el mundo exterior ya no parecía estable ni unívoco, por lo que el arte debía volcarse hacia el plano interior.</p>
-                    <p class="text-block">Clave en esta metamorfosis fue la fuerte influencia de las corrientes espirituales y filosóficas de la época, particularmente la teosofía, que proponía la existencia de verdades universales más allá del mundo material perceptible. Los pioneros del abstraccionismo defendían que las formas puras y las vibraciones cromáticas poseían una "necesidad interna" capaz de dialogar de forma directa con el alma del espectador, de forma análoga a como lo hace la música instrumental, la cual no requiere imitar los sonidos cotidianos para despertar profundas respuestas emocionales. Así, el lienzo dejó de ser una ventana al mundo para convertirse en un objeto autónomo cargado de significación propia.</p>
+                    <p class="text-block">Clave en esta metamorfosis fue la fuerte influencia de las corrientes espirituales y filosóficas de la época, particularmente la teosofía, que proponía la existencia de verdades universales más allá del mundo material perceptible. Los pioneers del abstraccionismo defendían que las formas puras y las vibraciones cromáticas poseían una "necesidad interna" capaz de dialogar de forma directa con el alma del espectador, de forma análoga a como lo hace la música instrumental, la cual no requiere imitar los sonidos cotidianos para despertar profundas respuestas emocionales. Así, el lienzo dejó de ser una ventana al mundo para convertirse en un objeto autónomo cargado de significación propia.</p>
                 </div>
             </div>
 
-            <!-- Sección 2: Tipos de Pintura -->
             <div class="art-section">
                 <button class="section-trigger">Tipos de Pintura</button>
                 <div class="section-content">
@@ -242,7 +250,6 @@
                 </div>
             </div>
 
-            <!-- Sección 3: Lo Más Reconocido -->
             <div class="art-section">
                 <button class="section-trigger">Lo Más Reconocido</button>
                 <div class="section-content">
@@ -251,11 +258,10 @@
                 </div>
             </div>
 
-            <!-- Sección 4: Los Pintores Más Famosos -->
             <div class="art-section">
                 <button class="section-trigger">Los Pintores Más Famosos</button>
                 <div class="section-content">
-                    <p class="text-block">Los grandes referentes del movimiento no solo fueron virtuosos del pincel, sino también teóricos visionarios. <strong>Wassily Kandinsky</strong> es aclamado universalmente como el arquitecto intelectual del grupo, dejando textos fundamentales como <em>"De lo espiritual en el arte"</em>, donde estructuró las equivalencias psicológicas entre colores y formas geométricas. Por su parte, el holandés <strong>Piet Mondrian</strong> dedicó su vida a un proceso de depuración visual implacable; comenzó pintando paisajes naturales realistas hasta reducirlos gradualmente a su estructura elemental de líneas negras ortogonales y bloques puros de azul, rojo y amarillo, buscando un lenguaje estético utópico aplicable a la arquitectura y la vida moderna.</p>
+                    <p class="text-block">Los grandes referentes del movement no solo fueron virtuosos del pincel, sino también teóricos visionarios. <strong>Wassily Kandinsky</strong> es aclamado universalmente como el arquitecto intelectual del grupo, dejando textos fundamentales como <em>"De lo espiritual en el arte"</em>, donde estructuró las equivalencias psicológicas entre colores y formas geométricas. Por su parte, el holandés <strong>Piet Mondrian</strong> dedicó su vida a un proceso de depuración visual implacable; comenzó pintando paisajes naturales realistas hasta reducirlos gradualmente a su estructura elemental de líneas negras ortogonales y bloques puros de azul, rojo y amarillo, buscando un lenguaje estético utópico aplicable a la arquitectura y la vida moderna.</p>
                     <p class="text-block">Asimismo, figuras de la talla de <strong>Paul Klee</strong> aportaron una sensibilidad única combinando el rigor pedagógico de la escuela Bauhaus con una poética cargada de ironía, música y simbolismo primitivo. Es imperativo destacar la reciente y justa reivindicación histórica de la pintora sueca <strong>Hilma af Klint</strong>; investigaciones académicas contemporáneas han demostrado que Af Klint concibió complejas e inmensas composiciones totalmente abstractas cargadas de simbolismo místico y geométrico a partir de 1906, varios años antes de las primeras acuarelas registradas por Kandinsky o las obras de los círculos artísticos tradicionales de París o Múnich, consolidándose hoy como la verdadera pionera cronológica del movimiento.</p>
                 </div>
             </div>
@@ -270,12 +276,14 @@
         titulo.innerHTML = '';
         
         const coloresGotas = ['#ff0055', '#00f0ff', '#ffb700', '#9d00ff', '#00ff66'];
+        const spansLetras = [];
 
-        letras.forEach(letra => {
+        letras.forEach((letra, index) => {
             const span = document.createElement('span');
             span.innerText = letra === ' ' ? '\u00A0' : letra;
-            span.style.color = coloresGotas[Math.floor(Math.random() * coloresGotas.length)];
+            span.style.color = coloresGotas[index % coloresGotas.length];
             titulo.appendChild(span);
+            spansLetras.push(span);
 
             span.addEventListener('mouseover', (e) => {
                 const rect = e.target.getBoundingClientRect();
@@ -286,6 +294,33 @@
                 crearGota(rect.left + rect.width / 2, rect.bottom, span.style.color);
             });
         });
+
+        /* --- NUEVO EFECTO: COLORES ALEATORIOS EN SECCIONES (CAMBIAN AL ACTUALIZAR) --- */
+        const secciones = document.querySelectorAll('.art-section');
+        secciones.forEach(seccion => {
+            // Generamos un tono aleatorio brillante (0 a 360 en el espectro HSL)
+            const randomHue = Math.floor(Math.random() * 360);
+            
+            // Creamos variantes cromáticas para fondo transparente, bordes y sombras neón
+            const neonColor = `hsl(${randomHue}, 100%, 65%)`;
+            const bgColor = `hsla(${randomHue}, 40%, 15%, 0.25)`;
+            const borderColor = `hsla(${randomHue}, 50%, 50%, 0.2)`;
+            const shadowColor = `hsla(${randomHue}, 100%, 50%, 0.35)`;
+
+            // Seteamos las propiedades personalizadas en el estilo del elemento
+            seccion.style.setProperty('--neon-color', neonColor);
+            seccion.style.setProperty('--bg-color', bgColor);
+            seccion.style.setProperty('--border-color', borderColor);
+            seccion.style.setProperty('--shadow-color', shadowColor);
+
+            // Vinculamos el color generado a las gotas que caen desde la sección al interactuar
+            seccion.addEventListener('mousemove', (e) => {
+                if (Math.random() < 0.08) { // Genera gotas sutiles al raspar los recuadros
+                    crearGota(e.clientX, e.clientY, neonColor);
+                }
+            });
+        });
+
 
         /* --- 2. MOTOR DEL CANVAS: PINTURA ABSTRACTA + FÍSICA LÍQUIDA --- */
         const canvas = document.getElementById('canvas-oleo');
@@ -301,48 +336,50 @@
 
         function randomRange(min, max) { return Math.random() * (max - min) + min; }
         
-        let formasPintura = [];
+        let shapesPaint = [];
+        let globalHueShift = 0;
+
         function generarLienzoAbstracto() {
-            formasPintura = [];
-            // Capas de manchas orgánicas gigantes (Fondo Óleo)
+            shapesPaint = [];
             for (let i = 0; i < 12; i++) {
-                formasPintura.push({
+                shapesPaint.push({
                     tipo: 'oleo',
                     x: randomRange(0, width),
                     y: randomRange(0, height),
                     rx: randomRange(200, 500),
                     ry: randomRange(150, 400),
-                    color: `hsla(${randomRange(0, 360)}, ${randomRange(70, 95)}%, ${randomRange(35, 55)}%, ${randomRange(0.2, 0.45)})`,
+                    baseHue: randomRange(0, 360),
+                    sat: randomRange(70, 95),
+                    light: randomRange(35, 55),
+                    alpha: randomRange(0.2, 0.45),
                     angle: randomRange(0, Math.PI * 2)
                 });
             }
-            // Splatters / Salpicaduras de pintura auténticas
             for (let i = 0; i < 25; i++) {
                 let xCentro = randomRange(0, width);
                 let yCentro = randomRange(0, height);
-                let colorSplatter = `hsla(${randomRange(0, 360)}, 85%, 50%, ${randomRange(0.3, 0.6)})`;
+                let baseHue = randomRange(0, 360);
                 let radioBase = randomRange(10, 45);
                 
-                formasPintura.push({ tipo: 'mancha-centro', x: xCentro, y: yCentro, r: radioBase, color: colorSplatter });
+                shapesPaint.push({ tipo: 'mancha-centro', x: xCentro, y: yCentro, r: radioBase, baseHue: baseHue });
                 
                 for(let j=0; j<6; j++){
-                    formasPintura.push({
+                    shapesPaint.push({
                         tipo: 'satelite',
                         x: xCentro + randomRange(-radioBase*2, radioBase*2),
                         y: yCentro + randomRange(-radioBase*2, radioBase*2),
                         r: randomRange(2, 6),
-                        color: colorSplatter
+                        baseHue: baseHue
                     });
                 }
             }
-            // Trazos estructurales geométricos (Estilo Kandinsky)
             for (let i = 0; i < 8; i++) {
-                formasPintura.push({
+                shapesPaint.push({
                     tipo: 'trazo',
                     x1: randomRange(0, width), y1: randomRange(0, height),
                     x2: randomRange(0, width), y2: randomRange(0, height),
                     w: randomRange(4, 25),
-                    color: `hsla(${randomRange(0, 360)}, 90%, 40%, 0.35)`
+                    baseHue: randomRange(0, 360)
                 });
             }
         }
@@ -351,11 +388,14 @@
             ctx.fillStyle = '#0d0a16';
             ctx.fillRect(0, 0, width, height);
 
-            formasPintura.forEach(f => {
+            shapesPaint.forEach(f => {
                 ctx.save();
+                let currentHue = (f.baseHue + globalHueShift) % 360;
+
                 if (f.tipo === 'oleo') {
+                    let color = `hsla(${currentHue}, ${f.sat}%, ${f.light}%, ${f.alpha})`;
                     let g = ctx.createRadialGradient(f.x, f.y, 0, f.x, f.y, f.rx);
-                    g.addColorStop(0, f.color);
+                    g.addColorStop(0, color);
                     g.addColorStop(1, 'transparent');
                     ctx.fillStyle = g;
                     ctx.translate(f.x, f.y);
@@ -366,13 +406,13 @@
                     ctx.fill();
                 } 
                 else if (f.tipo === 'mancha-centro' || f.tipo === 'satelite') {
-                    ctx.fillStyle = f.color;
+                    ctx.fillStyle = `hsla(${currentHue}, 85%, 50%, 0.45)`;
                     ctx.beginPath();
                     ctx.arc(f.x, f.y, f.r, 0, Math.PI * 2);
                     ctx.fill();
                 } 
                 else if (f.tipo === 'trazo') {
-                    ctx.strokeStyle = f.color;
+                    ctx.strokeStyle = `hsla(${currentHue}, 90%, 40%, 0.35)`;
                     ctx.lineWidth = f.w;
                     ctx.lineCap = 'round';
                     ctx.beginPath();
@@ -384,7 +424,7 @@
             });
         }
 
-        /* --- 3. DINÁMICA DE AGUA (ONDAS AL TOCAR SECCIONES) Y GOTAS --- */
+        /* --- 3. DINÁMICA DE AGUA Y GOTAS --- */
         let ondasAgua = [];
         let gotasLiquidas = [];
 
@@ -471,8 +511,24 @@
 
         generarLienzoAbstracto();
 
+        let tiempoLetras = 0;
+
         function bucleLiquido() {
+            globalHueShift = (globalHueShift + 0.25) % 360; 
+
             dibujarPinturaBase();
+
+            tiempoLetras += 0.04;
+            spansLetras.forEach((span, index) => {
+                const offsetY = Math.sin(tiempoLetras + index * 0.4) * 14; 
+                const rotacion = Math.cos(tiempoLetras + index * 0.3) * 6;
+                const escala = 1 + Math.sin(tiempoLetras + index * 0.5) * 0.08;
+
+                span.style.transform = `translateY(${offsetY}px) rotate(${rotacion}deg) scale(${escala})`;
+                
+                const letraHue = (index * 30 + globalHueShift * 2) % 360;
+                span.style.color = `hsl(${letraHue}, 100%, 65%)`;
+            });
 
             ondasAgua = ondasAgua.filter(o => o.opacidad > 0);
             ondasAgua.forEach(o => {
@@ -505,6 +561,7 @@
                 });
 
                 if (!estaActivo) {
+                    seccionActual.classList.add('add');
                     seccionActual.classList.add('active');
                     contenidoActual.style.maxHeight = contenidoActual.scrollHeight + "px";
                 }
